@@ -50,7 +50,7 @@
         
         /* Sol Panel */
         #welcome-message {
-            font-size: 1.5em; /* YENİ: İsim göstergesi için boyut */
+            font-size: 1.5em;
         }
         #points-display { text-align: center; }
         #points-display span {
@@ -97,7 +97,6 @@
         .reward-claim button { padding: 10px 20px; font-size: 1em; font-weight: 700; border: none; border-radius: 8px; background-color: var(--accent-color); color: white; cursor: pointer; }
         .reward-claim button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
 
-        /* YENİ: Geçmiş öğesi için stil */
         .history-info .date { font-size: 0.8em; color: var(--light-text); }
     </style>
 </head>
@@ -155,7 +154,7 @@
         playerName: null,
         points: 0,
         rewards: [],
-        purchaseHistory: [], // YENİ: Satın alım geçmişi
+        purchaseHistory: [],
         wrongAnswerStreak: 0
     };
     let correctAnswerValue;
@@ -164,7 +163,6 @@
     // --- TEMEL OYUN FONKSİYONLARI ---
     function initialize() {
         loadGame();
-        // YENİ: Oyuncu ismi kontrolü
         if (!gameState.playerName) {
             promptForPlayerName();
         }
@@ -178,11 +176,11 @@
             gameState.playerName = name.trim();
             saveGame();
         } else {
-            gameState.playerName = "Oyuncu"; // Varsayılan isim
+            gameState.playerName = "Oyuncu";
         }
     }
 
-    function generateQuestion() { /* Bu fonksiyon değişmedi */
+    function generateQuestion() {
         answerInput.disabled = false;
         answerInput.value = '';
         answerInput.focus();
@@ -198,7 +196,7 @@
         }
     }
 
-    function checkAnswer() { /* Bu fonksiyon değişmedi */
+    function checkAnswer() {
         if (answerInput.disabled) return;
         const userAnswer = parseInt(answerInput.value);
         if (isNaN(userAnswer)) return;
@@ -239,11 +237,11 @@
         }
         currentPointsDisplay.textContent = gameState.points.toLocaleString('tr-TR');
         renderMarket();
-        renderHistory(); // YENİ: Geçmişi render et
+        renderHistory();
     }
     
     // --- MARKET VE GEÇMİŞ FONKSİYONLARI ---
-    function renderMarket() { /* Bu fonksiyon değişmedi */
+    function renderMarket() {
         marketContainer.innerHTML = '';
         if (gameState.rewards.length === 0) { marketContainer.innerHTML = '<p style="color: #95a5a6; text-align: center;">Market boş. Veli olarak ödül ekleyebilirsiniz.</p>';}
         gameState.rewards.forEach(reward => {
@@ -257,14 +255,12 @@
         });
     }
     
-    // YENİ: Satın Alım Geçmişini Ekrana Çizen Fonksiyon
     function renderHistory() {
         historyContainer.innerHTML = '';
         if (gameState.purchaseHistory.length === 0) {
             historyContainer.innerHTML = '<p style="color: #95a5a6; text-align: center;">Henüz bir ödül alınmadı.</p>';
             return;
         }
-        // En son alınan en üstte görünsün diye listeyi ters çeviriyoruz
         [...gameState.purchaseHistory].reverse().forEach(item => {
             const historyDiv = document.createElement('div');
             historyDiv.className = 'history-item';
@@ -279,7 +275,7 @@
         });
     }
 
-    function addReward() { /* Bu fonksiyon değişmedi */
+    function addReward() {
         const password = prompt("Lütfen yönetici şifresini girin:");
         if (password !== "veli123") { alert("Şifre yanlış!"); return; }
         const rewardName = prompt("Ödülün adını girin (örn: Hamburger):");
@@ -293,17 +289,18 @@
     }
     
     function claimReward(rewardId) {
-        const rewardIndex = gameState.rewards.findIndex(r => r.id === rewardId);
-        if (rewardIndex === -1) return;
+        const reward = gameState.rewards.find(r => r.id === rewardId);
+        if (!reward) return;
 
-        const reward = gameState.rewards[rewardIndex];
         if (gameState.points >= reward.cost) {
             if (confirm(`"${reward.name}" ödülünü ${reward.cost} puana almak istediğine emin misin?`)) {
                 gameState.points -= reward.cost;
-                // YENİ: Ödülü silmek yerine geçmişe ekliyoruz
+                
                 const claimedReward = { ...reward, date: new Date().toLocaleString('tr-TR') };
                 gameState.purchaseHistory.push(claimedReward);
-                gameState.rewards.splice(rewardIndex, 1);
+                
+                // DEĞİŞİKLİK: Bu satır, ödülün marketten silinmesini engellemek için kaldırıldı veya yorumlandı.
+                // gameState.rewards.splice(rewardIndex, 1);
                 
                 alert(`Tebrikler! "${reward.name}" ödülünü kazandın!`);
                 updateUI();
@@ -321,7 +318,6 @@
         const savedData = localStorage.getItem('mathMarketSave');
         if (savedData) {
             const loadedState = JSON.parse(savedData);
-            // YENİ: Kayıttan yüklerken tüm yeni alanları kontrol et
             gameState.playerName = loadedState.playerName || null;
             gameState.points = loadedState.points || 0;
             gameState.rewards = loadedState.rewards || [];

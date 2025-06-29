@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matematik Marketi</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
         :root {
@@ -14,6 +15,7 @@
             --text-color: #34495e;
             --light-text: #95a5a6;
             --border-color: #dfe6e9;
+            --danger-color: #e74c3c;
         }
         body {
             font-family: 'Nunito', sans-serif;
@@ -27,10 +29,10 @@
         }
         .game-container {
             display: grid;
-            grid-template-columns: 1fr 380px;
+            grid-template-columns: 1fr 400px;
             gap: 25px;
             width: 100%;
-            max-width: 1100px;
+            max-width: 1200px;
         }
         .panel {
             background-color: var(--panel-bg);
@@ -46,57 +48,43 @@
             font-weight: 900;
         }
         
-        /* Sol Panel (Oyun Alanı) */
+        /* Sol Panel */
+        #welcome-message {
+            font-size: 1.5em; /* YENİ: İsim göstergesi için boyut */
+        }
         #points-display { text-align: center; }
         #points-display span {
             font-size: 4em;
             font-weight: 900;
             color: var(--secondary-color);
         }
-        #info-note {
-            background-color: #f8f9fa;
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 10px;
-        }
+        #info-note { background-color: #f8f9fa; border: 1px solid var(--border-color); padding: 15px; margin: 20px 0; border-radius: 10px; }
         #info-note h4 { margin: 0 0 10px 0; }
         #info-note ul { margin: 0; padding-left: 20px; }
         
         #game-area { text-align: center; margin-top: 20px; }
         #question-display { font-size: 4.5em; font-weight: 900; margin: 20px 0; }
-        #answer-input {
-            width: 200px;
-            padding: 15px;
-            font-size: 2em;
-            text-align: center;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-        }
+        #answer-input { width: 200px; padding: 15px; font-size: 2em; text-align: center; border: 2px solid var(--border-color); border-radius: 10px; }
         #feedback-display { height: 30px; margin-top: 15px; font-weight: 700; font-size: 1.2em; }
+        #penalty-display { height: 20px; margin-top: 5px; font-size: 0.9em; color: var(--danger-color); font-weight: 700; }
         .correct { color: var(--secondary-color); }
-        .wrong { color: #e74c3c; }
+        .wrong { color: var(--danger-color); }
 
-        /* Sağ Panel (Market) */
+        /* Sağ Sütun */
+        .right-column { display: flex; flex-direction: column; gap: 25px; }
         #market-header { display: flex; justify-content: space-between; align-items: center; }
-        #add-reward-btn {
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-        }
-        #market-container {
+        #add-reward-btn { background: var(--secondary-color); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        
+        #market-container, #history-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
             margin-top: 15px;
-            max-height: 500px;
+            max-height: 250px;
             overflow-y: auto;
+            padding-right: 10px;
         }
-        .reward-item {
+        .reward-item, .history-item {
             border: 2px solid var(--border-color);
             border-radius: 10px;
             padding: 15px;
@@ -104,28 +92,19 @@
             justify-content: space-between;
             align-items: center;
         }
-        .reward-info h3 { margin: 0; font-size: 1.2em; }
-        .reward-info p { margin: 5px 0 0 0; font-weight: 700; color: var(--accent-color); }
-        .reward-claim button {
-            padding: 10px 20px;
-            font-size: 1em;
-            font-weight: 700;
-            border: none;
-            border-radius: 8px;
-            background-color: var(--accent-color);
-            color: white;
-            cursor: pointer;
-        }
-        .reward-claim button:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
+        .reward-info h3, .history-info h3 { margin: 0; font-size: 1.2em; }
+        .reward-info p, .history-info p { margin: 5px 0 0 0; font-weight: 700; color: var(--accent-color); }
+        .reward-claim button { padding: 10px 20px; font-size: 1em; font-weight: 700; border: none; border-radius: 8px; background-color: var(--accent-color); color: white; cursor: pointer; }
+        .reward-claim button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+        /* YENİ: Geçmiş öğesi için stil */
+        .history-info .date { font-size: 0.8em; color: var(--light-text); }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div class="panel">
-            <h2>Oyun Alanı</h2>
+            <h2 id="welcome-message">Matematik Oyunu</h2>
             <div id="points-display">
                 <p style="margin:0; font-weight: 700;">Toplam Puan</p>
                 <span id="current-points">0</span>
@@ -142,167 +121,172 @@
                 <div id="question-display"></div>
                 <input type="number" id="answer-input" autocomplete="off">
                 <div id="feedback-display"></div>
+                <div id="penalty-display"></div>
             </div>
         </div>
-        <div class="panel">
-            <div id="market-header">
-                <h2>Market</h2>
-                <button id="add-reward-btn">Ödül Ekle</button>
-            </div>
-            <div id="market-container">
+        <div class="right-column">
+            <div class="panel">
+                <div id="market-header">
+                    <h2>Market</h2>
+                    <button id="add-reward-btn">Ödül Ekle</button>
                 </div>
+                <div id="market-container"></div>
+            </div>
+            <div class="panel">
+                <h2>Satın Alım Geçmişi</h2>
+                <div id="history-container"></div>
+            </div>
         </div>
     </div>
     <script>
     // --- DOM ELEMENTLERİ ---
+    const welcomeMessage = document.getElementById('welcome-message');
     const currentPointsDisplay = document.getElementById('current-points');
     const questionDisplay = document.getElementById('question-display');
     const answerInput = document.getElementById('answer-input');
     const feedbackDisplay = document.getElementById('feedback-display');
+    const penaltyDisplay = document.getElementById('penalty-display');
     const marketContainer = document.getElementById('market-container');
     const addRewardBtn = document.getElementById('add-reward-btn');
+    const historyContainer = document.getElementById('history-container');
     
     // --- OYUN DEĞİŞKENLERİ ---
     let gameState = {
+        playerName: null,
         points: 0,
-        rewards: [] // {id, name, cost}
+        rewards: [],
+        purchaseHistory: [], // YENİ: Satın alım geçmişi
+        wrongAnswerStreak: 0
     };
     let correctAnswerValue;
-    let currentOperation; // Mevcut işlemin ne olduğunu tutar
+    let currentOperation; 
 
     // --- TEMEL OYUN FONKSİYONLARI ---
     function initialize() {
         loadGame();
+        // YENİ: Oyuncu ismi kontrolü
+        if (!gameState.playerName) {
+            promptForPlayerName();
+        }
         updateUI();
         generateQuestion();
     }
 
-    function generateQuestion() {
+    function promptForPlayerName() {
+        const name = prompt("Merhaba! Lütfen oyuncunun adını girin:");
+        if (name && name.trim() !== '') {
+            gameState.playerName = name.trim();
+            saveGame();
+        } else {
+            gameState.playerName = "Oyuncu"; // Varsayılan isim
+        }
+    }
+
+    function generateQuestion() { /* Bu fonksiyon değişmedi */
         answerInput.disabled = false;
         answerInput.value = '';
         answerInput.focus();
         feedbackDisplay.textContent = '';
-        
         const operations = ['+', '-', '*', '/'];
         currentOperation = operations[Math.floor(Math.random() * operations.length)];
         let num1, num2;
-
-        // İşlemlere göre soru ve puanlama mantığı
         switch (currentOperation) {
-            case '+':
-                num1 = Math.floor(Math.random() * 50) + 1;
-                num2 = Math.floor(Math.random() * 50) + 1;
-                correctAnswerValue = num1 + num2;
-                questionDisplay.textContent = `${num1} + ${num2}`;
-                break;
-            case '-':
-                num2 = Math.floor(Math.random() * 50) + 1;
-                num1 = num2 + Math.floor(Math.random() * 50) + 1;
-                correctAnswerValue = num1 - num2;
-                questionDisplay.textContent = `${num1} - ${num2}`;
-                break;
-            case '*':
-                num1 = Math.floor(Math.random() * 12) + 1;
-                num2 = Math.floor(Math.random() * 12) + 1;
-                correctAnswerValue = num1 * num2;
-                questionDisplay.textContent = `${num1} x ${num2}`;
-                break;
-            case '/':
-                num2 = Math.floor(Math.random() * 12) + 1;
-                correctAnswerValue = Math.floor(Math.random() * 12) + 1;
-                num1 = num2 * correctAnswerValue;
-                questionDisplay.textContent = `${num1} ÷ ${num2}`;
-                break;
+            case '+': num1 = Math.floor(Math.random() * 50) + 1; num2 = Math.floor(Math.random() * 50) + 1; correctAnswerValue = num1 + num2; questionDisplay.textContent = `${num1} + ${num2}`; break;
+            case '-': num2 = Math.floor(Math.random() * 50) + 1; num1 = num2 + Math.floor(Math.random() * 50) + 1; correctAnswerValue = num1 - num2; questionDisplay.textContent = `${num1} - ${num2}`; break;
+            case '*': num1 = Math.floor(Math.random() * 12) + 1; num2 = Math.floor(Math.random() * 12) + 1; correctAnswerValue = num1 * num2; questionDisplay.textContent = `${num1} x ${num2}`; break;
+            case '/': num2 = Math.floor(Math.random() * 12) + 1; correctAnswerValue = Math.floor(Math.random() * 12) + 1; num1 = num2 * correctAnswerValue; questionDisplay.textContent = `${num1} ÷ ${num2}`; break;
         }
     }
 
-    function checkAnswer() {
+    function checkAnswer() { /* Bu fonksiyon değişmedi */
         if (answerInput.disabled) return;
         const userAnswer = parseInt(answerInput.value);
         if (isNaN(userAnswer)) return;
-
         answerInput.disabled = true;
         let pointsGained = 0;
-
         if (userAnswer === correctAnswerValue) {
             switch (currentOperation) {
-                case '+':
-                case '-':
-                    pointsGained = 1;
-                    break;
-                case '*':
-                    pointsGained = 2;
-                    break;
-                case '/':
-                    pointsGained = 3;
-                    break;
+                case '+': case '-': pointsGained = 1; break;
+                case '*': pointsGained = 2; break;
+                case '/': pointsGained = 3; break;
             }
             gameState.points += pointsGained;
-            feedbackDisplay.textContent = `Doğru! +${pointsGained} Puan!`;
+            gameState.wrongAnswerStreak = 0;
+            feedbackDisplay.textContent = `Doğru! +${pointsGained} Puan! 🎉`;
             feedbackDisplay.className = 'correct';
+            penaltyDisplay.textContent = '';
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } else {
+            gameState.wrongAnswerStreak++;
             feedbackDisplay.textContent = `Yanlış! Cevap ${correctAnswerValue} idi.`;
             feedbackDisplay.className = 'wrong';
+            if (gameState.wrongAnswerStreak >= 3) {
+                gameState.points = Math.max(0, gameState.points - 5);
+                gameState.wrongAnswerStreak = 0;
+                penaltyDisplay.textContent = "3 yanlış! -5 Puan ceza!";
+            } else {
+                penaltyDisplay.textContent = `Dikkat! ${3 - gameState.wrongAnswerStreak} yanlış daha yaparsan ceza alacaksın.`;
+            }
         }
-
         updateUI();
         saveGame();
         setTimeout(generateQuestion, 1500);
     }
 
     function updateUI() {
+        if (gameState.playerName) {
+            welcomeMessage.textContent = `Hoş geldin, ${gameState.playerName}!`;
+        }
         currentPointsDisplay.textContent = gameState.points.toLocaleString('tr-TR');
         renderMarket();
+        renderHistory(); // YENİ: Geçmişi render et
     }
     
-    // --- MARKET FONKSİYONLARI ---
-    function renderMarket() {
+    // --- MARKET VE GEÇMİŞ FONKSİYONLARI ---
+    function renderMarket() { /* Bu fonksiyon değişmedi */
         marketContainer.innerHTML = '';
-        if (gameState.rewards.length === 0) {
-            marketContainer.innerHTML = '<p style="color: #95a5a6; text-align: center;">Market boş. Veli olarak ödül ekleyebilirsiniz.</p>';
-        }
+        if (gameState.rewards.length === 0) { marketContainer.innerHTML = '<p style="color: #95a5a6; text-align: center;">Market boş. Veli olarak ödül ekleyebilirsiniz.</p>';}
         gameState.rewards.forEach(reward => {
             const rewardDiv = document.createElement('div');
             rewardDiv.className = 'reward-item';
-            rewardDiv.innerHTML = `
-                <div class="reward-info">
-                    <h3>${reward.name}</h3>
-                    <p>${reward.cost.toLocaleString('tr-TR')} Puan</p>
-                </div>
-                <div class="reward-claim">
-                    <button id="claim-${reward.id}">Al</button>
-                </div>
-            `;
+            rewardDiv.innerHTML = `<div class="reward-info"><h3>${reward.name}</h3><p>${reward.cost.toLocaleString('tr-TR')} Puan</p></div><div class="reward-claim"><button id="claim-${reward.id}">Al</button></div>`;
             marketContainer.appendChild(rewardDiv);
-            
             const claimButton = document.getElementById(`claim-${reward.id}`);
             claimButton.disabled = gameState.points < reward.cost;
             claimButton.onclick = () => claimReward(reward.id);
         });
     }
-
-    function addReward() {
-        const password = prompt("Lütfen yönetici şifresini girin:");
-        if (password !== "veli123") {
-            alert("Şifre yanlış!");
+    
+    // YENİ: Satın Alım Geçmişini Ekrana Çizen Fonksiyon
+    function renderHistory() {
+        historyContainer.innerHTML = '';
+        if (gameState.purchaseHistory.length === 0) {
+            historyContainer.innerHTML = '<p style="color: #95a5a6; text-align: center;">Henüz bir ödül alınmadı.</p>';
             return;
         }
+        // En son alınan en üstte görünsün diye listeyi ters çeviriyoruz
+        [...gameState.purchaseHistory].reverse().forEach(item => {
+            const historyDiv = document.createElement('div');
+            historyDiv.className = 'history-item';
+            historyDiv.innerHTML = `
+                <div class="history-info">
+                    <h3>${item.name}</h3>
+                    <p style="color: #e74c3c;">-${item.cost.toLocaleString('tr-TR')} Puan</p>
+                    <p class="date">${item.date}</p>
+                </div>
+            `;
+            historyContainer.appendChild(historyDiv);
+        });
+    }
 
+    function addReward() { /* Bu fonksiyon değişmedi */
+        const password = prompt("Lütfen yönetici şifresini girin:");
+        if (password !== "veli123") { alert("Şifre yanlış!"); return; }
         const rewardName = prompt("Ödülün adını girin (örn: Hamburger):");
         if (!rewardName) return;
-
         const rewardCost = parseInt(prompt(`"${rewardName}" için gereken puanı girin (örn: 500):`));
-        if (isNaN(rewardCost) || rewardCost <= 0) {
-            alert("Lütfen geçerli bir puan girin.");
-            return;
-        }
-
-        gameState.rewards.push({
-            id: Date.now(), // Basit bir benzersiz ID
-            name: rewardName,
-            cost: rewardCost
-        });
-        
+        if (isNaN(rewardCost) || rewardCost <= 0) { alert("Lütfen geçerli bir puan girin."); return; }
+        gameState.rewards.push({ id: Date.now(), name: rewardName, cost: rewardCost });
         alert(`'${rewardName}' ödülü ${rewardCost} puan ile markete eklendi!`);
         updateUI();
         saveGame();
@@ -316,7 +300,11 @@
         if (gameState.points >= reward.cost) {
             if (confirm(`"${reward.name}" ödülünü ${reward.cost} puana almak istediğine emin misin?`)) {
                 gameState.points -= reward.cost;
-                gameState.rewards.splice(rewardIndex, 1); // Ödülü marketten kaldır
+                // YENİ: Ödülü silmek yerine geçmişe ekliyoruz
+                const claimedReward = { ...reward, date: new Date().toLocaleString('tr-TR') };
+                gameState.purchaseHistory.push(claimedReward);
+                gameState.rewards.splice(rewardIndex, 1);
+                
                 alert(`Tebrikler! "${reward.name}" ödülünü kazandın!`);
                 updateUI();
                 saveGame();
@@ -332,7 +320,13 @@
     function loadGame() {
         const savedData = localStorage.getItem('mathMarketSave');
         if (savedData) {
-            gameState = JSON.parse(savedData);
+            const loadedState = JSON.parse(savedData);
+            // YENİ: Kayıttan yüklerken tüm yeni alanları kontrol et
+            gameState.playerName = loadedState.playerName || null;
+            gameState.points = loadedState.points || 0;
+            gameState.rewards = loadedState.rewards || [];
+            gameState.purchaseHistory = loadedState.purchaseHistory || [];
+            gameState.wrongAnswerStreak = loadedState.wrongAnswerStreak || 0;
         }
     }
 

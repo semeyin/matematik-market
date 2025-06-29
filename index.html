@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.5">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Matematik Marketi</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
@@ -16,6 +16,49 @@
             --light-text: #95a5a6;
             --border-color: #dfe6e9;
             --danger-color: #e74c3c;
+           
+@media (max-width: 900px) {
+    body {
+        padding: 10px; /* Kenar boşluklarını azalt */
+        align-items: flex-start; /* İçeriği üste hizala */
+    }
+
+    .game-container {
+        /* Grid yapısını tek sütuna çevir */
+        grid-template-columns: 1fr; 
+        gap: 20px;
+    }
+
+    #question-display {
+        /* Çok büyük olan soru fontunu küçült */
+        font-size: 3em; 
+    }
+
+    #answer-input {
+        width: 150px;
+        font-size: 1.8em;
+    }
+
+    .panel {
+        padding: 15px; /* Panel içi boşlukları azalt */
+    }
+
+    /* Market ve Geçmiş kutularının yüksekliğini ayarla */
+    #market-container, #history-container {
+        max-height: 200px; 
+    }
+}
+
+@media (max-width: 480px) {
+    #question-display {
+        font-size: 2.5em; /* Daha küçük ekranlar için daha da küçült */
+    }
+    .reward-item, .history-item {
+        flex-direction: column; /* Ödül kartlarını alt alta yap */
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
         }
         body {
             font-family: 'Nunito', sans-serif;
